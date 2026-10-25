@@ -39,7 +39,7 @@ jobs:
             'rootProject.name = "KabulDollar"' \
             'include(":app")' > settings.gradle
           printf '%s\n' \
-            'plugins { id "com.android.application" version "8.7.3" }' > build.gradle
+            'plugins { id "com.android.application" version "8.7.3" apply false }' > build.gradle
           printf '%s\n' \
             'plugins { id "com.android.application" }' \
             'android {' \
