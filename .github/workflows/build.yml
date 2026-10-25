@@ -49,6 +49,7 @@ jobs:
             '}' > app/build.gradle
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          <uses-permission android:name="android.permission.INTERNET"/>
             <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Kabul Dollar" android:usesCleartextTraffic="true">
               <activity android:name=".MainActivity" android:exported="true">
                 <intent-filter>
