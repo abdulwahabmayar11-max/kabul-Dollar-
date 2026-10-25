@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#a80000">
+<title>کابل دالر | Kabul Dollar</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f5f5;color:#222;font-family:Arial,Tahoma,sans-serif}
+header{background:linear-gradient(135deg,#790000,#d00000);color:white;text-align:center;padding:28px 15px}
+.logo{font-size:32px;font-weight:bold;color:#ffd76a}
+header p{margin-bottom:0}
+main{max-width:520px;margin:20px auto;padding:0 14px}
+.card{background:white;padding:20px;border-radius:16px;box-shadow:0 3px 14px #0001;margin-bottom:16px}
+h2{margin-top:0;color:#990000;font-size:20px}
+label{display:block;margin:12px 0 6px}
+input,select,button{width:100%;padding:13px;border-radius:9px;border:1px solid #ddd;font-size:16px}
+button{background:#a80000;color:white;border:0;font-weight:bold;margin-top:14px}
+.result{font-size:25px;font-weight:bold;color:#a80000;overflow-wrap:anywhere;margin-top:16px}
+.note{font-size:13px;color:#777;line-height:1.8}
+.rate{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee}
+footer{text-align:center;padding:20px;color:#777;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">KABUL DOLLAR</div>
+  <h1>کابل دالر</h1>
+  <p>محاسبه و تبدیل اسعار</p>
+</header>
+<main>
+  <section class="card">
+    <h2>تبدیل ارز</h2>
+    <label for="amount">مقدار پول</label>
+    <input id="amount" type="number" min="0" value="1">
+    <label for="from">از ارز</label>
+    <select id="from"></select>
+    <label for="to">به ارز</label>
+    <select id="to"></select>
+    <button onclick="convert()">محاسبهٔ تبدیل</button>
+    <div id="result" class="result">نتیجه اینجا نمایش می‌شود</div>
+    <p class="note">نرخ‌های ابتدایی نمونه هستند و نرخ زندهٔ بازار نیستند. پیش از استفاده برای معامله، نرخ‌ها را بررسی و به‌روز کنید.</p>
+  </section>
+  <section class="card">
+    <h2>ارزهای موجود</h2>
+    <div id="rates"></div>
+  </section>
+</main>
+<footer>Kabul Dollar · نسخهٔ ابتدایی</footer>
+<script>
+const currencies = [
+  {code:"AFN",name:"افغانی افغانستان",rate:70},
+  {code:"USD",name:"دالر امریکا",rate:1},
+  {code:"EUR",name:"یورو",rate:0.86},
+  {code:"PKR",name:"کلدار پاکستان",rate:280},
+  {code:"IRR",name:"ریال ایران",rate:900000},
+  {code:"INR",name:"روپیه هند",rate:88},
+  {code:"GBP",name:"پوند بریتانیا",rate:0.75},
+  {code:"TRY",name:"لیره ترکیه",rate:42},
+  {code:"CNY",name:"یوان چین",rate:7.1},
+  {code:"AED",name:"درهم امارات",rate:3.67},
+  {code:"SAR",name:"ریال سعودی",rate:3.75},
+  {code:"CAD",name:"دالر کانادا",rate:1.38},
+  {code:"AUD",name:"دالر استرالیا",rate:1.53},
+  {code:"JPY",name:"ین جاپان",rate:150}
+];
+const from=document.getElementById("from");
+const to=document.getElementById("to");
+currencies.forEach(c=>{
+  from.add(new Option(c.code+" — "+c.name,c.code));
+  to.add(new Option(c.code+" — "+c.name,c.code));
+});
+from.value="USD";
+to.value="AFN";
+document.getElementById("rates").innerHTML=currencies.map(c=>
+  `<div class="rate"><span>${c.code} — ${c.name}</span><b>${c.rate.toLocaleString("en-US")}</b></div>`
+).join("");
+function convert(){
+  const amount=Number(document.getElementById("amount").value);
+  const a=currencies.find(c=>c.code===from.value);
+  const b=currencies.find(c=>c.code===to.value);
+  const out=document.getElementById("result");
+  if(!Number.isFinite(amount)||amount<0){out.textContent="مقدار معتبر وارد کنید";return;}
+  out.textContent=(amount/a.rate*b.rate).toLocaleString("en-US",{maximumFractionDigits:4})+" "+b.code;
+}
+convert();
+</script>
+</body>
+</html>
