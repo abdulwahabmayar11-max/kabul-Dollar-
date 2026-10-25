@@ -1,169 +1,89 @@
 
-<!-- ABOUT & CONTACT - KABUL DOLLAR -->
-<section id="about-kabul-dollar" class="about-contact">
-  <div class="about-card">
-    <div class="about-logo">KD</div>
+name: Build Kabul Dollar APK
 
-    <h2>دربارهٔ کابل دالر</h2>
-    <p class="about-description">
-      کابل دالر؛ اپلیکیشن تبدیل ارز و مشاهدهٔ نرخ اسعار.
-    </p>
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'index.html'
+      - '.github/workflows/build.yml'
 
-    <div class="owner-name">
-      <h3>Abdulwahab Mayar</h3>
-      <p>عبدالوحاب مایار</p>
-      <span>Founder & Developer</span>
-    </div>
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-    <h3 class="contact-heading">تماس با ما | Contact Us</h3>
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-    <a class="contact-link"
-       href="mailto:abdulwahabmayar11@gmail.com">
-      <span class="contact-icon">✉️</span>
-      <span>
-        <strong>Email</strong>
-        <small>abdulwahabmayar11@gmail.com</small>
-      </span>
-    </a>
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-    <a class="contact-link"
-       href="https://wa.me/93785468796"
-       target="_blank" rel="noopener">
-      <span class="contact-icon">💬</span>
-      <span>
-        <strong>WhatsApp</strong>
-        <small>+93 785 468 796</small>
-      </span>
-    </a>
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
 
-    <a class="contact-link"
-       href="https://t.me/+93785468796"
-       target="_blank" rel="noopener">
-      <span class="contact-icon">✈️</span>
-      <span>
-        <strong>Telegram</strong>
-        <small>0785468796</small>
-      </span>
-    </a>
+      - name: Install build tools
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
-    <p class="about-footer">
-      © 2026 Kabul Dollar — All Rights Reserved
-    </p>
-  </div>
-</section>
+      - name: Create Android project
+        run: |
+          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/java/com/kabuldollar/app
+          cp index.html app/src/main/assets/index.html
+          printf '%s\n' \
+            'pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }' \
+            'dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }' \
+            'rootProject.name = "KabulDollar"' \
+            'include(":app")' > settings.gradle
+          printf '%s\n' \
+            'plugins { id "com.android.application" version "8.7.3" apply false }' > build.gradle
+          printf '%s\n' \
+            'plugins { id "com.android.application" }' \
+            'android {' \
+            '    namespace "com.kabuldollar.app"' \
+            '    compileSdk 35' \
+            '    defaultConfig { applicationId "com.kabuldollar.app"; minSdk 23; targetSdk 28; versionCode 1; versionName "1.0" }' \
+            '}' > app/build.gradle
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Kabul Dollar" android:usesCleartextTraffic="true">
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/kabuldollar/app/MainActivity.java <<'EOF'
+          package com.kabuldollar.app;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          public class MainActivity extends Activity {
+            @Override public void onCreate(Bundle b) {
+              super.onCreate(b);
+              WebView w = new WebView(this);
+              w.setWebViewClient(new WebViewClient());
+              w.getSettings().setJavaScriptEnabled(true);
+              setContentView(w);
+              w.loadUrl("file:///android_asset/index.html");
+            }
+          }
+          EOF
 
-<style>
-.about-contact {
-  direction: rtl;
-  padding: 24px 14px;
-  margin: 24px auto;
-  max-width: 520px;
-  font-family: Arial, sans-serif;
-}
+      - name: Build debug APK
+        run: |
+          gradle --version
+          gradle assembleDebug --no-daemon
 
-.about-card {
-  background: linear-gradient(145deg, #a80000, #e51b23, #780000);
-  color: #fff;
-  padding: 24px 18px;
-  border-radius: 22px;
-  text-align: center;
-  box-shadow: 0 8px 25px rgba(100, 0, 0, 0.25);
-}
-
-.about-logo {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 12px;
-  border: 3px solid #ffd66b;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffd66b;
-  font-size: 25px;
-  font-weight: bold;
-}
-
-.about-card h2 {
-  margin: 10px 0;
-  color: #ffd66b;
-}
-
-.about-description {
-  line-height: 1.9;
-}
-
-.owner-name {
-  margin: 22px 0;
-  padding: 15px 8px;
-  border-top: 1px solid rgba(255,255,255,.35);
-  border-bottom: 1px solid rgba(255,255,255,.35);
-}
-
-.owner-name h3 {
-  direction: ltr;
-  margin: 5px;
-  color: #ffd66b;
-}
-
-.owner-name p {
-  margin: 7px;
-  font-size: 18px;
-}
-
-.owner-name span {
-  font-size: 12px;
-  opacity: .9;
-}
-
-.contact-heading {
-  margin: 20px 0 12px;
-  color: #ffd66b;
-}
-
-.contact-link {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  direction: ltr;
-  text-align: left;
-  text-decoration: none;
-  color: #fff;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  padding: 13px;
-  margin: 10px 0;
-  border-radius: 13px;
-  transition: background .2s;
-}
-
-.contact-link:active {
-  background: rgba(255,255,255,.25);
-}
-
-.contact-icon {
-  font-size: 26px;
-}
-
-.contact-link strong,
-.contact-link small {
-  display: block;
-  overflow-wrap: anywhere;
-}
-
-.contact-link strong {
-  margin-bottom: 5px;
-}
-
-.contact-link small {
-  opacity: .9;
-}
-
-.about-footer {
-  margin: 24px 0 0;
-  font-size: 11px;
-  opacity: .85;
-  direction: ltr;
-}
-</style>
-<!-- END ABOUT & CONTACT -->
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kabul-Dollar-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
