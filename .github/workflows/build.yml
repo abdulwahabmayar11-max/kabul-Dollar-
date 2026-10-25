@@ -1,0 +1,90 @@
+
+name: Build Kabul Dollar APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'index.html'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install build tools
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Create Android project
+        run: |
+          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/java/com/kabuldollar/app
+          cp index.html app/src/main/assets/index.html
+          printf '%s\n' \
+            'pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }' \
+            'dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }' \
+            'rootProject.name = "KabulDollar"' \
+            'include(":app")' > settings.gradle
+          printf '%s\n' \
+            'plugins { id "com.android.application" version "8.7.3" }' > build.gradle
+          printf '%s\n' \
+            'plugins { id "com.android.application" }' \
+            'android {' \
+            '    namespace "com.kabuldollar.app"' \
+            '    compileSdk 35' \
+            '    defaultConfig { applicationId "com.kabuldollar.app"; minSdk 23; targetSdk 28; versionCode 1; versionName "1.0" }' \
+            '}' > app/build.gradle
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Kabul Dollar" android:usesCleartextTraffic="true">
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/kabuldollar/app/MainActivity.java <<'EOF'
+          package com.kabuldollar.app;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          public class MainActivity extends Activity {
+            @Override public void onCreate(Bundle b) {
+              super.onCreate(b);
+              WebView w = new WebView(this);
+              w.setWebViewClient(new WebViewClient());
+              w.getSettings().setJavaScriptEnabled(true);
+              setContentView(w);
+              w.loadUrl("file:///android_asset/index.html");
+            }
+          }
+          EOF
+
+      - name: Build debug APK
+        run: |
+          gradle --version
+          gradle assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kabul-Dollar-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          
